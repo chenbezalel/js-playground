@@ -37,6 +37,7 @@
 | `Token` | יחידת הטקסט שהמודל קורא. בערך מילה או חלק ממילה |
 | `Stale context` | מידע לא מעודכן ב־context. המודל פועל לפיו כאילו הוא נכון |
 | `Context engineering` | ההחלטה איזה מידע להכניס ל־context של המודל, ואיך לשמור אותו נכון ומעודכן |
+| `Project instructions file` | קובץ הוראות קבוע לפרויקט שה־agent טוען בכל שיחה. ב־Claude Code זה `CLAUDE.md`, ובכלים אחרים למשל `AGENTS.md` |
 | `Session-scoped` | תקף רק לשיחה הנוכחית |
 | `Persistent` | נשמר לאורך זמן, בין שיחות. למשל הוראות ב־`CLAUDE.md` |
 

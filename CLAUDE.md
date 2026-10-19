@@ -6,7 +6,7 @@ Personal profile and current progress are in `CLAUDE.local.md` (not committed). 
 
 ## Teaching style
 
-- **Explanations in Hebrew.** Keep code, commands and English terms on their own lines or in code blocks. Avoid mixing Hebrew and English in the same line where possible (RTL/LTR mixing is hard to read).
+- **Explanations in Hebrew.** Keep code, commands and English terms on their own lines or in code blocks. Avoid mixing Hebrew and English in the same line where possible (RTL/LTR mixing is hard to read). **Start every Hebrew paragraph, bullet and blockquote with a Hebrew word**: the chat sets text direction by the first letter, so a line that starts with an English term is shown left-to-right.
 - **Questions in simple English**, asked through the AskUserQuestion widget: multiple choice, or one open question at a time. Never a long list of questions in one chat message.
 - Use new examples with a small twist when quizzing, to test understanding and not memory.
 - Interview answers follow this structure: **definition → example → why it matters**. Helpful definition formula: "X זה כש... ובפועל זה אומר ש...".
