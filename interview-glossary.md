@@ -17,6 +17,7 @@
 - [LLM ו-Agent](#llm-agent)
 - [Context ו-Context window](#context)
 - [System prompt ו-User prompt](#system-user-prompt)
+- [Hallucination](#hallucination)
 
 **תהליכי עבודה**
 - [Code review](#code-review)
@@ -260,6 +261,49 @@ User prompt (from the user):
 
 **תשובה לראיון:**
 > ההבדל הוא שאת ה-system prompt כותב מי שבנה את המערכת, והוא מנחה את המודל לאורך כל השיחה: התפקיד, השפה, הכללים. ה-user prompt הוא הבקשה של המשתמש בכל הודעה. לדוגמה, באתר תזונה עם עוזר AI, ה-system prompt יגיד "ענה בעברית, ורק על תזונה, ואל תיתן אבחנה רפואית", וה-user prompt יהיה "כמה חלבון יש בביצה?". זה חשוב כי ככה המפתחת שולטת בהתנהגות של העוזר, וההתנהגות זהה לכל המשתמשים. ה-system prompt נמצא בשרת, והמשתמש לא יכול לראות או לשנות אותו. זה מקשה על משתמש לנסות לעקוף את הכללים ולבצע תקיפה של הפרומפט, מה שנקרא prompt injection. אבל זה לא מונע את זה לגמרי, ולכן במוצר אמיתי מוסיפים עוד שכבות הגנה, guardrails.
+
+---
+
+<a id="hallucination"></a>
+## Hallucination
+
+**הגדרה:** הזיה (hallucination) היא מצב שבו המודל ממציא מידע לא נכון שנשמע נכון. זה קורה כי המודל מנבא טקסט **סביר**, וסביר זה לא תמיד נכון.
+
+**דוגמה:**
+
+</div>
+
+```js
+// AI suggested:
+const byRole = users.groupBy(u => u.role);        // does not exist
+
+// Checked on MDN – the real one:
+const byRole = Object.groupBy(users, u => u.role); // Node 21+
+```
+
+<div dir="rtl">
+
+**למה זה מסוכן:** המודל כותב מידע מומצא **באותו ביטחון** כמו מידע אמיתי, ואין סימן שמבדיל ביניהם. התוצאה: באגים בפרודקשן, או ספרייה זדונית (slopsquatting).
+
+**איך מתמודדים:**
+
+</div>
+
+```
+Verify AFTER the answer:
+  - source of truth: MDN (JS), react.dev (React), npmjs.com (packages)
+  - run it:          node -e "console.log(typeof Object.groupBy)"
+  - NOT "are you sure?" – same source, and sycophancy
+
+Ground BEFORE the answer (grounding):
+  - give the model real sources: docs, project files (package.json)
+  - RAG: the system finds relevant docs and adds them to the context
+```
+
+<div dir="rtl">
+
+**תשובה לראיון:**
+> הזיה, או hallucination, זה כשהמודל ממציא מידע לא נכון, שנשמע נכון. למשל, הוא משתמש בפונקציה שלא קיימת, או מציע להתקין ספרייה שלא קיימת. זה קורה כי המודל מנבא טקסט סביר, וסביר זה לא תמיד נכון. זה מסוכן כי המודל כותב מידע מומצא באותו ביטחון כמו מידע אמיתי, ואין שום סימן שמבדיל ביניהם. בלי בדיקה, זה יכול להגיע לפרודקשן כבאג, או אפילו כספרייה זדונית שמישהו רשם בשם שמודלים נוטים להמציא. יש שתי דרכים להתמודד. קודם כל, לאמת אחרי: להסתמך על מקורות מהימנים בהתאם, MDN לבדיקה של פונקציות ו-npm לבדיקת ספריות ומהימנותן, ולהריץ ניסוי קצר. ושנית, למנוע מראש: לתת למודל מקורות אמיתיים להסתמך עליהם, כמו קבצים מהפרויקט או התיעוד הרשמי. זה נקרא grounding.
 
 ---
 
