@@ -13,6 +13,9 @@
 - [this](#this)
 - [Arrow functions ו-this](#arrow-this)
 
+**תהליכי עבודה**
+- [Code review](#code-review)
+
 ---
 
 <a id="closure"></a>
@@ -156,5 +159,81 @@ const user = {
 
 **תשובה לראיון:**
 > פונקציה רגילה מקבלת this לפי איך שקוראים לה, ו-arrow function לפי איפה שכתבו אותה, כי אין לה this משלה. לכן arrow function מצוינת ל-callback בתוך מתודה, כי היא שומרת על ה-this של המתודה. אבל לא כדאי להגדיר בה מתודה של אובייקט, כי הסוגריים של אובייקט הם לא סביבה, ואז this יגיע מבחוץ.
+
+---
+
+<a id="code-review"></a>
+## Code review
+
+**הגדרה:** קריאה ובדיקה של קוד לפני שהוא נכנס לפרויקט. בודקים את ה-diff מול הדרישות, מריצים, ומחפשים edge cases. אותו תהליך בדיוק מתאים גם לקוד שכתב AI.
+
+**צ'קליסט:**
+1. לקרוא את ה-diff, כל שורה. שורה שלא מבינים, עוצרים ושואלים.
+2. להשוות לדרישות: Goal, Constraints, Acceptance criteria.
+3. להריץ.
+4. לבדוק edge cases: מערך ריק, ערך חסר, `0`, שגיאת רשת.
+5. לחפש scope creep ו-over-engineering.
+6. API או ספרייה לא מוכרים? לאמת מול התיעוד הרשמי.
+
+**הנוסחה להערת review:**
+
+</div>
+
+```
+Problem    = what is wrong + why it matters
+Proof      = input + output
+Suggestion = exact change + why it's better
+```
+
+<div dir="rtl">
+
+**דוגמה 1:** באג בקוד של AI (`week-01/05-ai-code-review.js`)
+
+</div>
+
+```
+Problem:    meals.sort() changes the original array.
+            The constraints say the order must not change.
+Proof:      monday = Oatmeal, Salad, Yogurt
+            after summarizeDay(monday): Salad, Oatmeal, Yogurt
+Suggestion: filter first (it returns a new array), then sort the new array.
+```
+
+<div dir="rtl">
+
+**דוגמה 2:** כוונה לא ברורה בקוד שלי
+
+</div>
+
+```
+Problem:    !!meal.calories ignores meals with 0 calories.
+            It is not clear if this is on purpose.
+Proof:      [{ name: 'Diet Cola', calories: 0 }]
+            returns { total: 0, top: null }
+Suggestion: change the filter condition to meal.calories > 0,
+            so the intent is clear.
+```
+
+<div dir="rtl">
+
+**ניסוח כשלא בטוחים:** הערה בצורת שאלה היא מקצועית ולגיטימית.
+
+</div>
+
+```
+I think this changes the original array — can you check?
+Question: what happens if meals is empty?
+Nit: rename meals → meal inside filter (shadowing).
+```
+
+<div dir="rtl">
+
+**למה זה חשוב:**
+- בצוות, כל קוד עובר review. ככה תופסים באגים לפני שהם מגיעים לפרודקשן.
+- עם כלי AI זה חשוב עוד יותר: קוד של AI נראה מקצועי ובטוח, גם כשיש בו באגים (automation bias).
+- בראיונות מבקשים לפעמים לעשות review לקוד קיים, ושואלים איך את עובדת עם AI.
+
+**תשובה לראיון:**
+> (נכתוב יחד, במילים שלך, בתרגול בעל-פה)
 
 </div>
