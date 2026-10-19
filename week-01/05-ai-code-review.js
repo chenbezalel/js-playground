@@ -26,9 +26,9 @@
 
 function summarizeDay(meals) {
   
-  const mealsWithCalories = meals.filter(meals => !!meals.calories);
+  const mealsWithCalories = meals.filter(meal => meal.calories > 0);
 
-  if (!mealsWithCalories.length) return;
+  if (!mealsWithCalories.length) return { total: 0, top: null };
 
   mealsWithCalories.sort((a, b) => b.calories - a.calories);
 
@@ -62,3 +62,6 @@ console.log('Wednesday:', summarizeDay(wednesday));
 
 const thursday = [{ name: 'Water' }, { name: 'Tea' }];
 console.log('Thursday:', summarizeDay(thursday));
+
+const friday = [{ name: 'Diet Cola', calories: 0 }];
+console.log('Friday:', summarizeDay(friday));
