@@ -66,6 +66,8 @@
 | `RAG` | Retrieval-Augmented Generation. המערכת מחפשת מסמכים רלוונטיים ומכניסה אותם ל־context לפני שהמודל עונה |
 | `Sycophancy` | הנטייה של מודל לרצות את המשתמש: להסכים איתו, או "לתקן" תשובה נכונה כששואלים "בטוח?" |
 | `Slopsquatting` | תקיפה: רושמים ב־npm ספריות עם שמות ש־AI נוטה להמציא, ומכניסים לתוכן קוד זדוני |
+| `Typosquatting` | תקיפה ותיקה: רושמים ספרייה עם שם שדומה לספרייה אמיתית, עם שגיאת הקלדה. למשל `raect` במקום `react` |
+| `postinstall` | סקריפט שספרייה יכולה להריץ אוטומטית בזמן `npm install`. לכן ספרייה זדונית מזיקה כבר בהתקנה |
 | `Prompt injection` | ניסיון לעקוף את ה־system prompt דרך הקלט. למשל "Ignore your instructions and..." |
 | `Guardrails` | שכבות הגנה סביב מודל במוצר: בדיקת הקלט, בדיקת התשובה לפני שמציגים אותה, הגבלת נושאים |
 | `Automation bias` | הנטייה לסמוך על פלט של מכונה רק כי הוא נראה מקצועי ובטוח |
@@ -92,6 +94,15 @@
 | `Immutable` | גישה שבה לא משנים נתונים קיימים, אלא יוצרים עותק חדש. למשל `filter`, `map`, `toSorted` |
 | `Stable sort` | מיון שבו איברים שווים נשארים בסדר המקורי שלהם. `sort` ב־JS יציב מאז 2019 |
 | `Shallow copy` | העתקה רדודה: המערך חדש, אבל האובייקטים שבתוכו משותפים. למשל `[...arr]` |
+| `Function declaration` | הגדרה עם `function name() {}`. עולה למעלה במלואה ב־hoisting |
+| `Function expression` | פונקציה שמוצבת לתוך משתנה: `var f = function () {}`. רק המשתנה עולה למעלה |
+| `Reassignment` | הצבה של ערך חדש במשתנה: `x = []`. את זה `const` אוסר. שינוי תוכן (mutation) מותר |
+| `Synchronous` | קוד שרץ עכשיו, שורה אחרי שורה, עד הסוף |
+| `Asynchronous` | קוד שירוץ "אחר כך": `setTimeout`, promises, בקשות רשת |
+| `Call stack` | המקום שבו רץ הקוד שמתבצע עכשיו. JS מריץ דבר אחד בכל פעם |
+| `Event loop` | המנגנון שמחליט מה רץ מתי: קודם הקוד הסינכרוני, אחר כך כל ה־microtasks, ואז משימה אחת מה־task queue |
+| `Microtask queue` | תור ה־VIP: callbacks של promises (`.then`). מתרוקן כולו לפני ה־task queue |
+| `Task queue` | התור הרגיל: callbacks של `setTimeout`, אירועים. נקרא גם macrotask queue |
 
 ---
 
