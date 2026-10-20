@@ -12,6 +12,7 @@
 - [var / let / const](#var-let-const)
 - [this](#this)
 - [Arrow functions ו-this](#arrow-this)
+- [Event loop](#event-loop)
 
 **AI**
 - [LLM ו-Agent](#llm-agent)
@@ -166,6 +167,54 @@ const user = {
 
 **תשובה לראיון:**
 > פונקציה רגילה מקבלת this לפי איך שקוראים לה, ו-arrow function לפי איפה שכתבו אותה, כי אין לה this משלה. לכן arrow function מצוינת ל-callback בתוך מתודה, כי היא שומרת על ה-this של המתודה. אבל לא כדאי להגדיר בה מתודה של אובייקט, כי הסוגריים של אובייקט הם לא סביבה, ואז this יגיע מבחוץ.
+
+---
+
+<a id="event-loop"></a>
+## Event loop
+
+**הגדרה:** המנגנון שקובע באיזה סדר הקוד רץ. ל-JavaScript יש thread אחד, אז היא מריצה דבר אחד בכל פעם. ה-event loop מחכה שה-call stack יתרוקן, ורק אז מעלה את הדבר הבא.
+
+**הכלל, שחוזר שוב ושוב:**
+
+</div>
+
+```
+1. Run all sync code until the call stack is empty
+2. Run ALL microtasks (promises: .then, await) – also new ones added on the way
+3. Take ONE task from the task queue (setTimeout, events) → back to step 2
+```
+
+<div dir="rtl">
+
+**דוגמה:** (`week-02/01-event-loop.js`)
+
+</div>
+
+```js
+console.log('A');                                // sync
+setTimeout(() => console.log('B'), 0);           // task queue
+Promise.resolve().then(() => console.log('C'));  // microtask queue
+console.log('D');                                // sync
+// Output: A D C B
+```
+
+<div dir="rtl">
+
+‏`setTimeout` עם `0` לא רץ "מיד". הוא נכנס לתור המשימות, ו-microtasks תמיד עוקפים אותו.
+
+**מלכודות ב"מה יודפס?":**
+- **microtask שנוצר בתוך microtask** עדיין רץ לפני כל ה-tasks. התור מתרוקן **לגמרי**.
+- **microtask שנוצר בתוך task** רץ לפני ה-task הבא.
+- **שתי שרשראות `.then`** מתחלפות: ה-`.then` הבא נכנס לסוף התור רק כשהקודם מסתיים.
+
+**למה זה חשוב:**
+- **דף שקופא:** לולאה כבדה תופסת את ה-call stack. לחיצות וציור מסך מחכים, והמשתמש לא יכול לעשות כלום. הפתרון: להעביר את העבודה לשרת, ל-Web Worker, או לפצל אותה לחלקים.
+- **שרת Node:** יש thread אחד לכל המשתמשים. חסימה בבקשה אחת פוגעת בכולם (לכן משתמשים ב-job queue כמו BullMQ).
+- **באגים של סדר:** `console.log` מיד אחרי `fetch` מדפיס `undefined`, כי ה-`.then` ירוץ רק אחר כך.
+
+**תשובה לראיון:**
+> event loop זה המנגנון שקובע באיזה סדר הקוד ירוץ. ל-JavaScript יש thread אחד, אז היא מריצה דבר אחד בכל פעם. ובפועל זה אומר שקודם רץ כל הקוד הסינכרוני, לפי הסדר. כשה-call stack מתרוקן, רצים כל ה-microtasks, כמו then של promises, ורק אחר כך task אחד מה-task queue, כמו setTimeout, ואז חוזרים לבדוק את ה-microtasks. למשל, אם מדפיסים A, אחר כך setTimeout עם B, promise עם C, ואז D, יודפס A D C B. זה חשוב כי אם לולאה כבדה תופסת את ה-call stack, ה-event loop לא יכול להריץ שום דבר אחר: הדף קופא, והמשתמש לא יכול ללחוץ או להמשיך לגלוש. לכן עבודה כבדה מעבירים למקום אחר, למשל לשרת שיבצע את החישוב, ובינתיים הדף ממשיך להגיב. ובשרת Node זה עוד יותר חשוב, כי שם יש thread אחד לכל המשתמשים.
 
 ---
 

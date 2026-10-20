@@ -103,6 +103,14 @@
 | `Event loop` | המנגנון שמחליט מה רץ מתי: קודם הקוד הסינכרוני, אחר כך כל ה־microtasks, ואז משימה אחת מה־task queue |
 | `Microtask queue` | תור ה־VIP: callbacks של promises (`.then`). מתרוקן כולו לפני ה־task queue |
 | `Task queue` | התור הרגיל: callbacks של `setTimeout`, אירועים. נקרא גם macrotask queue |
+| `Thread` | מסלול ריצה. ל־JS יש thread אחד, ולכן היא מריצה דבר אחד בכל רגע |
+| `Callback` | פונקציה שמעבירים כדי שתרוץ אחר כך. למשל בתוך `setTimeout` או `.then` |
+| `Blocking the event loop` | קוד סינכרוני כבד שתופס את ה־call stack. בזמן הזה שום callback לא רץ, והדף או השרת "קופאים" |
+| `Case-sensitive` | יש הבדל בין אותיות גדולות וקטנות. `setTimeOut` זה לא `setTimeout`, ויזרוק `ReferenceError` |
+| `process.argv` | מערך ב־Node עם חלקי הפקודה שהריצה את הקובץ. במקום 2 נמצא מה שכתבו אחרי שם הקובץ, כמחרוזת |
+| `Interleaving` | שזירה: שתי שרשראות `.then` מתחלפות בתור, צעד מכל אחת, כמו שיני רוכסן |
+| `Web Worker` | thread נוסף בדפדפן לחישובים כבדים, כדי שהממשק לא יקפא |
+| `Job queue` | תור עבודות בשרת (למשל BullMQ): עבודה כבדה רצה בתהליך נפרד, והשרת ממשיך לענות לכולם |
 
 ---
 
@@ -144,6 +152,7 @@
 | `Root cause` | הסיבה השורשית לבאג. מתקנים אותה, ולא רק את התסמין |
 | `Guard clause` | בדיקה של מקרה מיוחד בתחילת פונקציה, עם יציאה מיידית. נקרא גם early return |
 | `URL encoding` | המרה של תווים מיוחדים (רווח, `&`, `?`) לצורה בטוחה בכתובת. ב־JS: `encodeURIComponent` |
+| `Command-line argument` | מילה שכותבים בטרמינל אחרי שם הקובץ: `node file.js 2`. מגיעה לקוד דרך `process.argv` |
 | `REPL` | Read-Eval-Print Loop. חלון שבו כותבים שורת קוד ומקבלים תוצאה מיד. מריצים `node` בלי קובץ |
 
 </div>
