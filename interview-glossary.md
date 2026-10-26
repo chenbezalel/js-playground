@@ -13,6 +13,9 @@
 - [this](#this)
 - [Arrow functions ו-this](#arrow-this)
 - [Event loop](#event-loop)
+- [Promise](#promise)
+- [async / await](#async-await)
+- [fetch ו-res.ok](#fetch)
 
 **AI**
 - [LLM ו-Agent](#llm-agent)
@@ -215,6 +218,111 @@ console.log('D');                                // sync
 
 **תשובה לראיון:**
 > event loop זה המנגנון שקובע באיזה סדר הקוד ירוץ. ל-JavaScript יש thread אחד, אז היא מריצה דבר אחד בכל פעם. ובפועל זה אומר שקודם רץ כל הקוד הסינכרוני, לפי הסדר. כשה-call stack מתרוקן, רצים כל ה-microtasks, כמו then של promises, ורק אחר כך task אחד מה-task queue, כמו setTimeout, ואז חוזרים לבדוק את ה-microtasks. למשל, אם מדפיסים A, אחר כך setTimeout עם B, promise עם C, ואז D, יודפס A D C B. זה חשוב כי אם לולאה כבדה תופסת את ה-call stack, ה-event loop לא יכול להריץ שום דבר אחר: הדף קופא, והמשתמש לא יכול ללחוץ או להמשיך לגלוש. לכן עבודה כבדה מעבירים למקום אחר, למשל לשרת שיבצע את החישוב, ובינתיים הדף ממשיך להגיב. ובשרת Node זה עוד יותר חשוב, כי שם יש thread אחד לכל המשתמשים.
+
+---
+
+<a id="promise"></a>
+## Promise
+
+**הגדרה:** אובייקט שמייצג ערך שיגיע **אחר כך**. יש לו שלושה מצבים: `pending` (מחכה), `fulfilled` (הצליח, עם ערך) ו-`rejected` (נכשל, עם שגיאה). כשהוא יוצא מ-pending הוא נקרא settled, ולא משתנה יותר.
+
+**מי משנה את המצב:** רק קריאה ל-`resolve` או ל-`reject`. הפונקציה שבתוך `then` רק **נרשמת**. כשה-Promise מסתיים, היא נכנסת לתור ה-microtasks.
+
+**דוגמה:** (`week-02/02-promises.js`)
+
+</div>
+
+```js
+getMeals('monday')
+  .then((meals) => meals.map((meal) => meal.calories)) // return → next then
+  .then((calories) => console.log(calories))
+  .catch((error) => console.log(error.message))        // any error skips here
+  .finally(() => console.log('Done'));                 // runs in both cases
+```
+
+<div dir="rtl">
+
+**כללי השרשור:**
+- **כל `then` מחזיר Promise חדש.** מה שעושים לו `return` מגיע ל-`then` הבא.
+- **שכחת `return`** (בפונקציית חץ עם `{ }`): ה-`then` הבא מקבל `undefined`, בלי שום שגיאה.
+- **שגיאה באמצע:** מדלגת על כל ה-`then` עד ה-`catch` הקרוב.
+- **אחרי `catch`:** השרשרת חוזרת למסלול ההצלחה, ומה שה-`catch` מחזיר מגיע ל-`then` הבא.
+- **`then` תמיד אסינכרוני:** גם אם ה-Promise כבר fulfilled, הוא רץ רק אחרי הקוד הסינכרוני.
+
+**למה זה חשוב:**
+- **בלי Promises** היינו צריכים לחכות ולהקפיא את הדף בכל בקשה לשרת. עם thread אחד, זה לא אפשרי.
+- **באגים שקטים:** `return` חסר או `catch` חסר לא נותנים שגיאה ברורה, רק `undefined` בהמשך, או שגיאה שאף אחד לא תפס.
+
+**תשובה לראיון (טיוטה, לתרגל בעל פה):**
+> Promise זה אובייקט שמייצג ערך שיגיע אחר כך, למשל תשובה משרת. ובפועל זה אומר שהפונקציה מחזירה אותו מיד, והקוד ממשיך לרוץ בלי לחכות. יש לו שלושה מצבים: pending, fulfilled ו-rejected, והמצב משתנה רק כשקוראים ל-resolve או ל-reject. עם then מקבלים את הערך, ועם catch את השגיאה. כל then מחזיר Promise חדש, ולכן אפשר לשרשר: מה שמחזירים מ-then אחד מגיע לבא אחריו, ושגיאה באמצע קופצת ישר ל-catch. זה חשוב כי ל-JavaScript יש thread אחד: בלי Promises, כל בקשה לשרת הייתה מקפיאה את הדף.
+
+---
+
+<a id="async-await"></a>
+## async / await
+
+**הגדרה:** תחביר נוח יותר לאותם Promises (syntactic sugar).
+- פונקציה עם `async` **תמיד** מחזירה Promise. גם `return 750` הופך ל-Promise של 750.
+- המילה `await` עוצרת **רק את הפונקציה הזו** עד שה-Promise מסתיים. אם הוא הצליח, מקבלים את הערך. אם הוא נכשל, `await` **זורק** את השגיאה.
+- עד ה-`await` הראשון, הפונקציה רצה באופן סינכרוני.
+
+**דוגמה:** (`week-02/03-async-await.js`)
+
+</div>
+
+```js
+async function loadTotal() {
+  try {
+    const meals = await getMeals('monday');
+    return meals.reduce((sum, meal) => sum + meal.calories, 0);
+  } catch (error) {
+    console.log('Error:', error.message);
+  }
+}
+
+const result = loadTotal();   // Promise, not a number!
+```
+
+<div dir="rtl">
+
+**שתי מלכודות:**
+- **`await` בלי `try/catch`:** אם ה-Promise נכשל, השגיאה לא נתפסת (unhandled rejection). ב-Node התוכנית קורסת.
+- **שכחת `await`** לפני פונקציה אסינכרונית: מקבלים Promise במקום נתונים. ב-React זה נראה כמו `data.map is not a function`.
+
+**למה זה חשוב:** הקוד נקרא מלמעלה למטה, כמו קוד רגיל, ואין מלכודת של `return` חסר בשרשרת. ומכיוון ש-`await` עוצר רק את הפונקציה, הדף או השרת ממשיכים לענות לכולם בזמן ההמתנה.
+
+**תשובה לראיון (טיוטה, לתרגל בעל פה):**
+> async/await זה תחביר נוח יותר לעבודה עם Promises. ובפועל זה אומר שפונקציה עם async תמיד מחזירה Promise, ו-await עוצר רק את הפונקציה הזו עד שה-Promise מסתיים, ונותן את הערך. אם ה-Promise נכשל, await זורק שגיאה, ולכן תופסים אותה עם try/catch, כמו בקוד רגיל. למשל, טעינת ארוחות מהשרת: const meals = await getMeals(). זה חשוב כי הקוד נקרא מלמעלה למטה, ובזמן ההמתנה שאר התוכנית ממשיכה לרוץ. צריך לזכור שבלי try/catch שגיאה לא נתפסת, ובלי await מקבלים Promise במקום נתונים.
+
+---
+
+<a id="fetch"></a>
+## fetch ו-res.ok
+
+**הגדרה:** הפונקציה `fetch` שולחת בקשת HTTP ומחזירה Promise של אובייקט Response.
+- **`fetch` נכשל (rejected) רק כשאין תשובה בכלל:** אין רשת, השרת כבוי, או שאף אחד לא מאזין בפורט.
+- **404 או 500 הם תשובה.** ה-Promise מצליח, ו-`catch` **לא** רץ.
+- **`res.ok`** הוא `true` רק לסטטוס 200–299.
+- **`res.json()`** גם מחזיר Promise, כי גוף התשובה מגיע בחלקים.
+
+**דוגמה:** (`week-02/04-fetch.js`)
+
+</div>
+
+```js
+const res = await fetch('/api/meals');
+if (!res.ok) {
+  throw new Error(`Request failed with status ${res.status}`);
+}
+const meals = await res.json();
+```
+
+<div dir="rtl">
+
+**למה זה חשוב:** בלי בדיקת `res.ok`, תשובת 404 נכנסת לקוד כאילו הכל תקין. במקום מערך מקבלים אובייקט שגיאה, ו-`meals.length` מחזיר `undefined` בשקט. הסיבה האמיתית נעלמת, והבאג מופיע רחוק משם, למשל `meals.map is not a function`.
+
+**תשובה לראיון (טיוטה, לתרגל בעל פה):**
+> fetch שולח בקשת HTTP ומחזיר Promise של התשובה. ובפועל זה אומר שהוא נכשל רק כשאין תשובה בכלל, למשל שגיאת רשת. אם השרת ענה 404 או 500, מבחינת fetch זו תשובה תקינה, וה-catch לא ירוץ. לכן תמיד בודקים res.ok, ואם הוא false זורקים שגיאה בעצמנו. זה חשוב כי אחרת הקוד ממשיך עם נתונים לא נכונים, ומקבלים undefined או קריסה במקום אחר, רחוק מהסיבה האמיתית.
 
 ---
 
