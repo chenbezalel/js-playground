@@ -15,9 +15,7 @@ function debounce(fn, delay) {
     timerID = setTimeout(() => {
       fn(...args);
     }, delay);
-  }
-
-
+  };
 }
 
 // ---------------------------------------------------------------
