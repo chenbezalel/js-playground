@@ -88,7 +88,7 @@
 | `this` | האובייקט שקרא לפונקציה. נקבע בזמן הקריאה, לא בזמן הכתיבה |
 | `Arrow function` | פונקציה שאין לה `this` משלה. היא לוקחת אותו מהמקום שבו נכתבה |
 | `Truthy / Falsy` | ערכים שנחשבים `true` או `false` בתנאי. Falsy: `0`, `''`, `null`, `undefined`, `NaN`, `false`. כל השאר truthy |
-| `Shadowing` | משתנה פנימי עם אותו שם כמו משתנה חיצוני, ש"מסתיר" אותו. עובד, אבל מבלבל |
+| `Shadowing` | משתנה פנימי עם אותו שם כמו משתנה חיצוני, ש"מסתיר" אותו. עובד, אבל מבלבל. גם במאפיינים: own property מסתיר את זה שב־prototype |
 | `Reference` | מערכים ואובייקטים נשמרים כהפניה. `b = a` מעתיק את ההפניה, ושני המשתנים מצביעים על אותו מערך |
 | `Mutation` | שינוי של מבנה נתונים קיים, למשל `sort` או `push`. ב־React אסור לעשות mutation ל־state |
 | `Immutable` | גישה שבה לא משנים נתונים קיימים, אלא יוצרים עותק חדש. למשל `filter`, `map`, `toSorted` |
@@ -145,6 +145,37 @@
 | `Spread` | שלוש נקודות בקריאה: `fn(...args)`. מפזר מערך בחזרה לערכים נפרדים |
 | `apply` | קורא לפונקציה עם `this` שבוחרים: `fn.apply(obj, args)`. הערכים עוברים כמערך |
 | `Race condition` | מצב מרוץ: כמה פעולות אסינכרוניות "מתחרות", והתוצאה תלויה במי שמסיים ראשון |
+| `Prototype` | אובייקט "תיק משותף" שאובייקט אחר מקושר אליו. מה שחסר באובייקט, JS מחפש שם |
+| `Prototype chain` | שרשרת ה־prototypes: JS מחפש מאפיין באובייקט, ואם אין, עולה קומה אחרי קומה עד `null` |
+| `Own property` | מאפיין שנמצא על האובייקט עצמו, ולא הגיע מה־prototype. `Object.keys` מחזיר רק אותם |
+| `hasOwnProperty` | בודק אם מאפיין הוא own property: `nums.hasOwnProperty('map')` הוא `false` |
+| `Object.create` | יוצר אובייקט ריק, שה־prototype שלו הוא האובייקט שמעבירים. לא מעתיק כלום |
+| `Object.getPrototypeOf` | מחזיר את ה־prototype של אובייקט: לאן "החץ" שלו מצביע |
+| `new` | יוצר אובייקט ריק, מקשר אותו ל־`X.prototype`, מריץ את `X` עם `this` = האובייקט, ומחזיר אותו |
+| `Class` | תחביר נוח (syntactic sugar) מעל prototypes. בפועל `typeof` של class הוא `'function'` |
+| `Constructor` | הפונקציה שרצה בכל `new`. מה שהיא כותבת ל־`this` נכנס לתיק של האובייקט |
+| `Method` | פונקציה בתוך class בלי `=`: `hello() {}`. יושבת פעם אחת ב־prototype, משותפת לכולם |
+| `Class field` | שדה בתוך class עם `=`: `count = 0`. נוצר מחדש בכל אובייקט, כמו שורה ב־constructor |
+| `Inheritance` | ירושה: `class Dog extends Animal`. השרשרת עולה מ־`Dog.prototype` ל־`Animal.prototype` |
+| `super` | קורא ל־constructor של מחלקת האב (`super(name)`), או למתודה שלה (`super.speak()`) |
+| `Override` | דריסה: מתודה במחלקת הבן עם אותו שם כמו באב. JS מוצא אותה קודם ועוצר |
+| `Strict mode` | מצב קפדני. קוד בתוך class תמיד בו. קריאה בלי נקודה נותנת `this` = `undefined` |
+| `bind` | יוצר פונקציה חדשה עם `this` קבוע: `this.handleClick.bind(this)`. היה נפוץ ב־React class components |
+| `Lost this` | באג נפוץ: מעבירים מתודה כ־callback (`forEach(cart.add)`), ובקריאה אין נקודה, אז `this` אובד |
+| `reduce` | "מקפלת" מערך לערך אחד: מספר, אובייקט או מערך. מה שה־callback מחזיר הופך ל־`acc` של הסיבוב הבא |
+| `Accumulator` | הצובר (`acc`): התוצאה עד עכשיו, בכל סיבוב של `reduce` |
+| `Initial value` | הפרמטר השני של `reduce`: ה־`acc` של הסיבוב הראשון. בלעדיו, מערך ריק זורק `TypeError` |
+| `Implicit return` | ב־arrow function בלי `{ }`, הערך מוחזר לבד: `(a, b) => a + b`. עם `{ }` חייבים `return` |
+| `??` | Nullish coalescing: `x ?? 0` נותן `0` רק אם `x` הוא `null` או `undefined` |
+| `typeof` | מחזיר מחרוזת עם הסוג: `'function'`, `'string'`. על משתנה שלא קיים מחזיר `'undefined'` בלי שגיאה |
+| `Module` | קובץ עם scope משלו. מה שלא עשו לו `export` נשאר פרטי |
+| `Named export` | `export const X`. אפשר כמה בקובץ. מייבאים באותו שם, בתוך `{ }`. אפשר לשנות שם עם `as` |
+| `Default export` | `export default ...`. רק אחד בקובץ. מייבאים בלי `{ }`, ובוחרים כל שם |
+| `ES modules` | מערכת המודולים החדשה: `import` / `export`. ב־Node צריך `"type": "module"` ב־`package.json` |
+| `CommonJS` | מערכת המודולים הישנה של Node: `require` ו־`module.exports`. עדיין נפוצה בקוד ישן |
+| `Module cache` | Node מריץ כל מודול פעם אחת ושומר את מה שייצא. כל `import` נוסף מקבל את אותו דבר |
+| `Singleton` | אובייקט שיש ממנו רק עותק אחד בכל האפליקציה, למשל חיבור למסד נתונים או Redux store |
+| `Encapsulation` | הכמסה: הקוד מסתיר את הפרטים הפנימיים, וחושף רק מה שצריך (למשל רק מה שעשו לו `export`) |
 
 ---
 
@@ -168,6 +199,7 @@
 | `Scope creep` | כשמשימה גדלה מעבר למה שביקשו. למשל AI ששינה גם קבצים שלא ביקשת |
 | `Over-engineering` | פתרון מסובך יותר ממה שהבעיה צריכה |
 | `Dependency` | ספרייה חיצונית שהפרויקט תלוי בה, למשל `axios` |
+| `Trade-off` | פשרה: כל פתרון נותן משהו ועולה משהו. למשל arrow field שומר על `this`, אבל יוצר עותק לכל אובייקט |
 | `Regression` | באג חדש בדבר שעבד קודם, שנגרם בגלל שינוי |
 | `Defense in depth` | הגנה בכמה שכבות. מה שעובר שכבה אחת נתפס בשכבה הבאה |
 | `Linter` | כלי שקורא את הקוד בלי להריץ אותו ומסמן בעיות: משתנים לא בשימוש, דברים לא מוגדרים ועוד |

@@ -19,6 +19,10 @@
 - [Debounce](#debounce)
 - [Throttle](#throttle)
 - [Promise.all](#promise-all)
+- [Prototype ו־prototype chain](#prototype)
+- [Class, ו־this ב־callback](#class)
+- [reduce](#reduce)
+- [ES modules](#es-modules)
 
 **AI**
 - [LLM ו-Agent](#llm-agent)
@@ -491,6 +495,154 @@ function promiseAll(items) {
 
 **תשובה לראיון (מהמילים שלי):**
 > `Promise.all` זו פונקציה שמקבלת מערך של promises, ובפועל היא מחזירה promise אחד, שמצליח עם מערך של כל התוצאות, לפי סדר השליחה ולא לפי סדר החזרה, או נכשל מיד ברגע שאחד מהם נכשל. כדי לממש אותה, מחזירים `new Promise`, ועוברים פריט פריט. על כל פריט רושמים `then` ו־`catch`, שירוצו אחר כך, כשהפריט מסתיים. את התוצאות שומרים במערך חדש, במיקום המקורי, ובמקביל יש מונה. בכל הצלחה משווים אותו לאורך המערך המקורי, וכשהוא שווה, קוראים ל־`resolve`. ברגע שנתפסת שגיאה, קוראים ל־`reject`. מערך ריק מצליח מיד, וערכים רגילים עוטפים עם `Promise.resolve`. למשל כשהאתר עולה וצריך כמה בקשות לשרת, כמו `getUser` ו־`getMeals`: במקום לחכות לכל אחת בנפרד, הן יוצאות במקביל. זה חוסך זמן, כי מחכים רק לאיטית ביותר, וגם מקבלים promise אחד שאומר אם כל הבקשות הצליחו.
+
+---
+
+<a id="prototype"></a>
+## Prototype ו־prototype chain
+
+**הגדרה:** לכל אובייקט יש קישור נסתר לאובייקט אחר, שנקרא ה־**prototype** שלו ("תיק משותף"). כשקוראים מאפיין, JS מחפש קודם על האובייקט עצמו (own property). אם אין, הוא עולה ל־prototype, ומשם ל־prototype שלו, עד `null`. המסלול הזה נקרא **prototype chain**.
+- **קריאה** עולה בשרשרת. **כתיבה** תמיד נכנסת לאובייקט עצמו, ומסתירה את מה שב־prototype (shadowing).
+- זה **קישור, לא עותק**: אם משנים את ה־prototype, כל האובייקטים המקושרים רואים את השינוי.
+- הפקודה `Object.keys` מחזירה רק own properties.
+
+</div>
+
+```
+           User.prototype  (shared bag)
+           ┌───────────────────┐
+           │ hello: function   │
+           └───────────────────┘
+              ▲             ▲
+         link │             │ link
+   ┌──────────────┐   ┌──────────────┐
+   │ dana         │   │ noa          │
+   │ name: 'Dana' │   │ name: 'Noa'  │
+   └──────────────┘   └──────────────┘
+```
+
+```js
+const nums = [3, 1, 2];
+nums.hasOwnProperty('map');                        // false: map is not in nums
+Object.getPrototypeOf(nums) === Array.prototype;   // true: map lives here
+```
+
+<div dir="rtl">
+
+**למה זה חשוב:** מתודה שיושבת ב־prototype קיימת **פעם אחת** בזיכרון, גם אם יש מיליון אובייקטים, ושינוי במקום אחד משפיע על כולם. זה גם הבסיס של `class`, של `extends` ושל `instanceof`, ובלי להבין אותו קשה להבין באגים של `this`.
+
+**תשובה לראיון (מהמילים שלי):**
+> prototype זה אובייקט "אב" שאובייקט אחר מקושר אליו, ובפועל זה אומר שהתכונות שבו משותפות לכל האובייקטים שמקושרים אליו. כשאני ניגשת לתכונה, JS מחפש אותה קודם באובייקט עצמו, ואם לא מוצא, הוא עולה ל־prototype, וממנו הלאה בשרשרת, עד הסוף. לזה קוראים prototype chain. למשל `map`: היא לא נמצאת בכל מערך שאני יוצרת, אלא פעם אחת ב־`Array.prototype`, וכל מערך מוצא אותה דרך השרשרת. זה חשוב כי יש תכונות שנרצה שיהיו משותפות לכל האובייקטים מאותו סוג: הן נשמרות פעם אחת בזיכרון, ושינוי במקום אחד משפיע על כולם.
+
+---
+
+<a id="class"></a>
+## Class, ו־this ב־callback
+
+**הגדרה:** `class` הוא **syntactic sugar** מעל prototypes, ולא מנגנון חדש (`typeof User` הוא `'function'`).
+- **constructor ו־class fields** (שדות עם `=`, כמו `count = 0`): רצים בכל `new`, ונכנסים לתיק **של כל אובייקט**.
+- **מתודה רגילה** (בלי `=`, כמו `hello() {}`): נכנסת **פעם אחת** ל־`User.prototype`, משותפת לכולם.
+- **`extends`:** מוסיף קומה לשרשרת. `super(name)` מריץ את ה־constructor של האב, ו־`super.speak()` את המתודה של האב.
+- **קוד בתוך class תמיד ב־strict mode.** לכן קריאה בלי נקודה נותנת `this` = `undefined`.
+
+</div>
+
+```js
+class Cart {
+  total = 0;               // field → own bag of each cart
+  add(price) {             // method → Cart.prototype (shared)
+    this.total += price;
+  }
+}
+const cart = new Cart();
+
+[10, 20].forEach(cart.add);            // TypeError: forEach calls fn(10), no dot → this is undefined
+[10, 20].forEach((p) => cart.add(p));  // works: the dot is inside the arrow → this is cart
+```
+
+<div dir="rtl">
+
+**שלוש דרכים לשמור על `this` ב־callback:**
+1. עוטפים ב־arrow: `() => cart.add(p)`. הנקודה נשארת בקריאה.
+2. מקבעים עם `bind`: `this.add = this.add.bind(this)` ב־constructor (היה נפוץ ב־React class components).
+3. כותבים את המתודה כ־arrow field: `add = (price) => {...}`. ה־arrow לוקחת את `this` מהאובייקט שנוצר. **trade-off:** עותק של הפונקציה לכל אובייקט, ולא אחד משותף.
+
+**למה זה חשוב:** "lost this" הוא באג קלאסי: מעבירים מתודה ל־`onClick`, ל־`forEach` או ל־`setTimeout`, ובלחיצה נזרק `TypeError`. בצד השרת נכתוב הרבה classes (למשל services ו־errors), ובראיונות שואלים "מה ההבדל בין class ל־prototype".
+
+**תשובה לראיון (מהמילים שלי):**
+> `class` הוא דרך נוחה יותר לכתוב את אותו מנגנון של prototypes, ובפועל זה אומר שמתודות שאני כותבת ב־class נכנסות פעם אחת ל־prototype, ומה שכתוב ב־constructor נכנס לתיק האישי של כל אובייקט. למשל class של חיה: לכל החיות יש מתודה אחת משותפת להגיד שלום, אבל לכל חיה יש שם משלה, בתיק האישי שלה. כך כל החיות משתמשות באותה מתודה, וחוסכים זיכרון. צריך להיזהר כשמעבירים מתודה כ־callback, למשל ל־`forEach`: ה־`forEach` מקבל את הפונקציה כמשתנה ומריץ אותה בלי נקודה לפניה, ולכן `this` הוא `undefined`. הפתרון: לעטוף ב־arrow function, שם יש נקודה לפני הקריאה, או להשתמש ב־`bind`.
+
+---
+
+<a id="reduce"></a>
+## reduce
+
+**הגדרה:** `reduce` "מקפלת" מערך לערך **אחד**: מספר, אובייקט, או אפילו מערך. היא מקבלת callback וערך התחלתי.
+- בכל סיבוב, ה־callback מקבל את ה־**accumulator** (`acc`, התוצאה עד עכשיו) ואת האיבר הבא.
+- מה שה־callback **מחזיר** הופך ל־`acc` של הסיבוב הבא. בסוף, `reduce` מחזירה את ה־`acc` האחרון.
+- **בלי ערך התחלתי:** ה־`acc` הראשון הוא האיבר הראשון, והסיבובים מתחילים מהשני. במערך ריק נזרק `TypeError` (אין מאיפה להתחיל). אין `acc` דיפולטיבי, כי JS לא יודע מה בונים.
+
+</div>
+
+```js
+const meals = [
+  { day: 'sun', calories: 300 },
+  { day: 'mon', calories: 200 },
+  { day: 'sun', calories: 500 },
+];
+
+const total = meals.reduce((acc, meal) => acc + meal.calories, 0);   // 1000
+
+const perDay = meals.reduce((acc, meal) => {
+  acc[meal.day] = (acc[meal.day] ?? 0) + meal.calories;
+  return acc;                                                        // don't forget!
+}, {});                                                              // { sun: 800, mon: 200 }
+```
+
+<div dir="rtl">
+
+**טעויות נפוצות:**
+- **שוכחים `return`** ב־callback עם `{ }`: ה־`acc` הבא הוא `undefined`, וכך גם התוצאה. בלי `{ }` יש implicit return.
+- **לא נותנים ערך התחלתי:** עובד, עד שמגיע מערך ריק (למשל משתמשת חדשה בלי ארוחות), ואז הדף קורס.
+- **מותר** לשנות את `acc` כשהוא אובייקט חדש שיצרנו (`{}`). אסור לשנות מערך שקיבלנו ממי שקרא לנו.
+
+**למה זה חשוב:** `reduce` הופכת נתונים גולמיים למבנה שהמסך צריך: סכום, קיבוץ לפי יום (כמו `GROUP BY` ב־SQL), מקסימום, או אובייקט לפי `id`. הכל במעבר אחד, בלי לשנות את המערך המקורי.
+
+**תשובה לראיון (מהמילים שלי):**
+> `reduce` היא מתודה של מערך שמקפלת את כל המערך לערך אחד, ובפועל זה אומר שהיא עוברת איבר איבר ומעדכנת "צובר" (accumulator). היא מקבלת callback וערך התחלתי. בכל סיבוב ה־callback מקבל את ה־`acc` ואת האיבר הנוכחי, ומה שהוא מחזיר הופך ל־`acc` של הסיבוב הבא. למשל, במערך של קלוריות עם ערך התחלתי `0`, היא מחזירה את הסכום. אבל אפשר לבנות איתה כל מבנה: למשל אובייקט עם סך הקלוריות לכל יום. יש שתי טעויות נפוצות. הראשונה: לא לתת ערך התחלתי. אז ה־`acc` הראשון הוא האיבר הראשון, ובמערך ריק נזרקת שגיאה. השנייה: לשכוח `return` בתוך ה־callback, ואז ה־`acc` של הסיבוב הבא הוא `undefined`, וגם התוצאה הסופית. זה חשוב כי `reduce` הופכת נתונים גולמיים למבנה שהמסך צריך, במעבר אחד, בלי לשנות את המערך המקורי.
+
+---
+
+<a id="es-modules"></a>
+## ES modules
+
+**הגדרה:** מודול הוא קובץ עם scope משלו. מה שלא עשו לו `export` נשאר פרטי (encapsulation).
+- **named export** (`export const X`): כמה בקובץ. מייבאים באותו שם, בתוך `{ }`, ואפשר לשנות שם עם `as`.
+- **default export** (`export default ...`): רק אחד בקובץ. מייבאים בלי `{ }`, ובוחרים כל שם.
+- **ה־`import` "עולים למעלה":** כל המודולים המיובאים רצים **לפני** שאר הקוד בקובץ.
+- **module cache:** כל מודול רץ **פעם אחת**. כל `import` נוסף מקבל את אותו דבר, ולכן משתנה ברמת המודול משותף לכל האפליקציה (singleton).
+- **ב־Node:** `"type": "module"` ב־`package.json`, וכותבים סיומת: `'./meals.js'`. המערכת הישנה היא CommonJS: `require` ו־`module.exports`.
+
+</div>
+
+```js
+// counter.js – runs once, so there is ONE count for the whole app
+let count = 0;
+export function increment() {
+  count += 1;
+  return count;
+}
+
+// a.js:    import { increment } from './counter.js';  increment(); // 1
+// main.js: import './a.js';
+//          import { increment } from './counter.js';  increment(); // 2
+```
+
+<div dir="rtl">
+
+**למה זה חשוב:** בצד השרת, חיבור למסד נתונים או logger נוצרים פעם אחת במודול, וכל הקבצים חולקים אותם. בצד הלקוח, Redux store עובד על אותו עיקרון. וגם: מודולים מחלקים קוד לחלקים קטנים עם גבולות ברורים, ומסתירים פרטים פנימיים.
+
+**תשובה לראיון:** עוד לא ניסחתי אותה במילים שלי. נתרגל בסימולציית הראיון (מפגש 6).
 
 ---
 
