@@ -11,7 +11,8 @@
 **Success:**
 
 1. User: logging a saved meal takes 5 seconds or less. (Baseline today: about 15 seconds for my usual breakfast.)
-2. Dietitian: in one screen (a dashboard), she sees for each client:
+2. User: logging a new meal (not saved) with 3 foods takes 15 seconds or less. (Baseline today: about 20 seconds, because I search each food separately.)
+3. Dietitian: in one screen (a dashboard), she sees for each client:
    - Did the client eat more than his quota?
    - Did I already write feedback to this client?
 
@@ -83,9 +84,37 @@ _Story and acceptance criteria to write._ The idea: when I log lunch, the foods 
 - Notifications: a new note (user to dietitian, dietitian to user), a saved meal that changed (one time).
 - Meal planning: log meals for the future. Price: more rules to build and test (see edge cases 2 and 4, and open questions).
 
+### 3.4 Create a saved meal (user, Must, story 1)
+
+As a user, I want to create a saved meal,
+so that I can choose the meal and log it to the diary, instead of choosing each food of the meal separately.
+
+Acceptance criteria:
+
+1. Empty state: when the saved meals list is empty, the user sees a message that says the list is empty, and an option to add a meal.
+2. When the user opens the food catalog, he sees a "create new meal" button.
+3. To create a saved meal, the user adds all the foods of the meal, and must give the meal a name.
+4. After saving, the user sees a "success" message, and the meal shows in the saved meals list with: its name, its foods with their portions and stars, and the total stars of the meal.
+5. If a food inside the meal changes (for example: the admin changes its stars), the saved meal changes too, and the user sees a mark on the saved meal that it was updated. (Not a notification: notifications are not Must.)
+
+### Priority (MoSCoW)
+
+**Must, foundation** (without these there is no app):
+
+- 11 Admin: manage the food catalog. Without foods, the user cannot log anything.
+- 12 Admin: give roles. Without roles, the app cannot work.
+- 13 Sign up / log in / password reset. Logging in comes before logging in the diary.
+- 14 Who sees which diary.
+
+**Must, to reach the goals** (see Success):
+
+- Goals 1 and 2 (logging time): 1 Create a saved meal, 2 Suggestions by meal kind, 4 Search, filter and sort foods.
+- Goal 3 (dietitian): 8 Dashboard, 9 Write feedback.
+
+**Not Must** (the app works without them, but less well): 3 Favorite foods, 5 Quota warning, 6 Stars left today, 7 Copy a meal or a day, 10 Notifications, 15 Delete account and data.
+
 ### More stories to write (from the AI review, points 3 and 4)
 
-- Create a saved meal (and the empty state: no saved meals yet).
 - Favorite foods. Search, filter and sort foods. Quota warning.
 - Dietitian: dashboard, write feedback.
 - Admin: manage the food catalog, give roles.
